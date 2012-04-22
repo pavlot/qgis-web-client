@@ -300,6 +300,26 @@ MyViewportUi = Ext.extend(Ext.Viewport, {
                   expanded: true,
                   editable: false
                 },
+                listeners: {
+                  click: {
+                    fn: function(node,event) {
+                      //the record is the data node that was clicked
+                      //the item is the html dom element in the tree that was clicked
+                      //index is the index of the node relative to its parent
+                      //nodeId = record.data.id;
+                      //htmlId = item.id;
+                      
+                      if(undefined != node.attachment)
+                      {
+                        window.open("/qgisAttachments?func=GetFile&id="+
+                        node.attachment.ID+"&table="+node.attachment.table+
+                        "&feature="+node.attachment.feature+
+                        "&layer="+node.attachment.layer+
+                        "&qgisFile="+node.attachment.qgisFile);
+                      }
+                    }
+                  }
+                },
                 loader: {
 
                 }

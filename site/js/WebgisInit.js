@@ -1099,7 +1099,8 @@ function clearFeatureSelected() {
 function parseFeatureInfoResult(node) {
   if (node.hasChildNodes()) {
     if (node.nodeName == "Layer") {
-      featureInfoResultLayers.push(new Ext.tree.TreeNode({text:node.getAttribute("name")}));
+      layerName=node.getAttribute("name");
+      featureInfoResultLayers.push(new Ext.tree.TreeNode({text:layerName}));
       //in case of a raster layer there is no "Feature" child - we need to create an "artificial feature"
       if (node.getElementsByTagName("Feature").length == 0) {
         lastFeature = new Ext.tree.TreeNode({text:"Rasterzelle"});
@@ -1107,7 +1108,28 @@ function parseFeatureInfoResult(node) {
       }
     }
     if (node.nodeName == "Feature") {
-      lastFeature = new Ext.tree.TreeNode({text:attributeFeatureWithString[lang] + node.getAttribute("id")});
+      nodeId =  node.getAttribute("id");
+      lastFeature = new Ext.tree.TreeNode({text:attributeFeatureWithString[lang] + nodeId});
+      attachmentsNode =  new Ext.tree.TreeNode({text:"Attachments"})
+      lastFeature.appendChild(attachmentsNode);
+      
+      Ext.Ajax.request({
+          loadMask: true,
+          url: '/qgisAttachments?func=GetFileList&feature='+nodeId+'&layer='+layerName+'&qgisFile='+wmsMapName,
+          success: function(resp){
+              attachmetObject = JSON.parse(resp.responseText);
+              for (var k = 0; k < attachmetObject.length; ++k) {
+                newAttach = new Ext.tree.TreeNode(
+                 {
+                   text:attachmetObject[k].meta, 
+                   icon:"/gis_icons/mime_icons/"+attachmetObject[k].mimeType.replace("/","-")+".png"
+                 });
+                newAttach.attachment=attachmetObject[k];
+                attachmentsNode.appendChild(newAttach);
+              }
+          }
+          });
+      
       featureInfoResultLayers[featureInfoResultLayers.length - 1].appendChild(lastFeature);
     }
     var child = node.firstChild;
