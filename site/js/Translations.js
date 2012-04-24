@@ -733,3 +733,16 @@ errMessageSearchComboNetworkRequestFailureString["fr"] = "La requ&ecirc;te r&eac
 errMessageSearchComboNetworkRequestFailureString["it"] = "La richiesta di rete &egrave; fallita per la geometria del risultato di ricerca:\n"; //FIXME
 errMessageSearchComboNetworkRequestFailureString["pt_PT"] = "O pedido de rede para a geometria do resultado de pesquisa falhou:\n";
 errMessageSearchComboNetworkRequestFailureString["uk"] = "Не вдалося виконати запит геометрії для результатів пошуку:\n";
+
+/******************
+Attachment plugin
+*******************/
+//AttachmentsTreeItem
+var attachmentsTreeItem = new Array();
+attachmentsTreeItem["en"] = "Attachments";
+attachmentsTreeItem["es"] = "Attachments"; //FIXME
+attachmentsTreeItem["de"] = "Attachments"; //FIXME
+attachmentsTreeItem["fr"] = "Attachments"; //FIXME
+attachmentsTreeItem["it"] = "Attachments"; //FIXME
+attachmentsTreeItem["pt_PT"] = "Attachments"; //FIXME
+attachmentsTreeItem["uk"] = "Вкладені файли";

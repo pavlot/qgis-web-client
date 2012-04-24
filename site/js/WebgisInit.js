@@ -1110,7 +1110,7 @@ function parseFeatureInfoResult(node) {
     if (node.nodeName == "Feature") {
       nodeId =  node.getAttribute("id");
       lastFeature = new Ext.tree.TreeNode({text:attributeFeatureWithString[lang] + nodeId});
-      attachmentsNode =  new Ext.tree.TreeNode({text:"Attachments"})
+      attachmentsNode =  new Ext.tree.TreeNode({text:attachmentsTreeItem[lang]})
       lastFeature.appendChild(attachmentsNode);
       
       Ext.Ajax.request({
