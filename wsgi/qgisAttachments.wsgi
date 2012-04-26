@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from qgis.core import *
-from PyQt4.QtCore import *
-from qgisFeaturesEditorUtil import *
 from webob import Request
 from webob import Response
 import json
 import psycopg2
 import base64
 import sys
+import re
+from lxml import etree
 
 
 def application(environ, start_response):
@@ -21,20 +20,8 @@ def application(environ, start_response):
 def getConnectionStringFromRequest(request):
   baseLayerName = request.GET['layer']
   qgisFile = request.GET['qgisFile']
-
-
-  # supply path to where is your qgis installed
-  QgsApplication.setPrefixPath("/usr", True)
-
-  # load providers
-  QgsApplication.initQgis()
-
-  qgsProject = QgsProject.instance()
-  projectFileInfo = QFileInfo(qgisFile)
-  qgsProject.read(projectFileInfo)
-  layer = getLayerFromRegByName(QgsMapLayerRegistry.instance().mapLayers(), baseLayerName)
-  result = getConectionStringFromLayer(layer)
-  QgsApplication.exitQgis()
+  xmlQgisProject = getProjectXml(qgisFile)
+  result = getConectionStringFromLayer(xmlQgisProject, baseLayerName)
   return result
 
 def GetFileList(request, start_response):
@@ -76,7 +63,6 @@ def GetFileList(request, start_response):
   return [responseText]
 
 def GetFile(request, start_response):
-  print >> sys.stderr, "def GetFile(request, start_response):"
   objectId = request.GET['id']
   metaTableName = request.GET['table']
   sql='SELECT mimetype, meta, data from ' 
@@ -84,7 +70,6 @@ def GetFile(request, start_response):
                       # to have dict of table names and select name there!!!
                       # this dict could be obtained from the file
   sql+=' where "ID"=%(obj_id)s'
-  print >> sys.stderr, sql
   conn = psycopg2.connect(getConnectionStringFromRequest(request))
   curr = conn.cursor()
   curr.execute(sql,{"obj_id":objectId})
@@ -109,3 +94,28 @@ def GetFile(request, start_response):
       ('Content-Length', str(len(metaObject["data"])))]
   start_response(status, response_headers)
   return [metaObject["data"]]
+
+def getProjectXml(filePath):
+  return etree.parse(filePath)
+
+def getLayerByName(projectXml, layerName):
+  result = projectXml.xpath('//projectlayers/maplayer/layername[text()=\''+layerName+'\']/..')
+  if 0 < len(result):
+    result = result[0]
+  else:
+    result = None
+  return result
+
+def getConectionStringFromLayer(projectXml, layerName):
+  result = None
+  mapLayerXml = getLayerByName(projectXml, layerName)
+  if None != mapLayerXml:
+    xmlLayerDataSource = mapLayerXml.xpath('datasource')
+    if 0 < len(xmlLayerDataSource):
+      strLayerDataSource = xmlLayerDataSource[0].text
+      strHost = re.search('host(\s*)=(\s*)\S*', strLayerDataSource).group(0)
+      strDbName = re.search('dbname(\s*)=(\s*)\S*', strLayerDataSource).group(0)
+      strUser = re.search('user(\s*)=(\s*)\S*', strLayerDataSource).group(0)
+      strPassword = re.search('password(\s*)=(\s*)\'.*?\'', strLayerDataSource).group(0)
+      result = strHost +" "+ strDbName +" "+ strUser+" "+strPassword
+  return result
