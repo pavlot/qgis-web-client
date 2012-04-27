@@ -28,11 +28,13 @@ def GetFileList(request, start_response):
   baseLayerName = request.GET['layer']
   featureId = request.GET['feature']
   qgisFile = request.GET['qgisFile']
+  xmlQgisProject = getProjectXml(qgisFile)
+  layerTableName = getLayerTableName(xmlQgisProject, baseLayerName)
 
-  metaTableName = baseLayerName+'_meta'
+  metaTableName = layerTableName+'_meta'
   attachList = []
   sql='SELECT "ID", tag, meta, mimetype, fk_obj from ' 
-  sql+=metaTableName # TODO SQL Injection here!!!
+  sql+=metaTableName
   sql+=" where fk_obj=%(fk_obj)s and tag='attachment' "
   conn = psycopg2.connect(getConnectionStringFromRequest(request))
   curr = conn.cursor()
@@ -104,6 +106,17 @@ def getLayerByName(projectXml, layerName):
     result = result[0]
   else:
     result = None
+  return result
+
+def getLayerTableName(projectXml, layerName):
+  result = None
+  mapLayerXml = getLayerByName(projectXml, layerName)
+  if None != mapLayerXml:
+    xmlLayerDataSource = mapLayerXml.xpath('datasource')
+    if 0 < len(xmlLayerDataSource):
+      strLayerDataSource = xmlLayerDataSource[0].text
+      strTableName = re.search('table(\s*)=(\s*)"(.*?)"', strLayerDataSource).group(3)
+      result = strTableName
   return result
 
 def getConectionStringFromLayer(projectXml, layerName):
