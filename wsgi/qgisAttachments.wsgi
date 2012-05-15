@@ -33,7 +33,7 @@ def GetFileList(request, start_response):
 
   metaTableName = layerTableName+'_meta'
   attachList = []
-  sql='SELECT "ID", tag, meta, mimetype, fk_obj from ' 
+  sql='SELECT mid, tag, meta, mimetype, fk_obj from ' 
   sql+=metaTableName
   sql+=" where fk_obj=%(fk_obj)s and tag='attachment' "
   conn = psycopg2.connect(getConnectionStringFromRequest(request))
@@ -71,7 +71,7 @@ def GetFile(request, start_response):
   sql+=metaTableName  # TODO SQL Injection here, better 
                       # to have dict of table names and select name there!!!
                       # this dict could be obtained from the file
-  sql+=' where "ID"=%(obj_id)s'
+  sql+=' where mid=%(obj_id)s'
   conn = psycopg2.connect(getConnectionStringFromRequest(request))
   curr = conn.cursor()
   curr.execute(sql,{"obj_id":objectId})
